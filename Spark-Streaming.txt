@@ -1,0 +1,33 @@
+
+textFileStream
+-------------------------------------------------------------------------------
+
+import org.apache.spark.streaming.{StreamingContext,Seconds}
+sc.setLogLevel("WARN")
+val ssc = new StreamingContext(sc,Seconds(5))
+val empDstream = ssc.textFileStream("/user/cloudera/streaming")
+case class Emp(id:Int,name:String,sal:Double)
+empDstream.foreachRDD(rdd => rdd.map(line => line.split(",")).map(c => Emp(c(0).toInt,c(1),c(2).toDouble)).foreach(println))
+ssc.start
+
+--------------------------------------------------------------------------------------------------------
+
+networkwordcount
+-----------------------------------------------------------------------
+scala> sc.setLogLevel("WARN")
+
+scala> import org.apache.spark.streaming._
+import org.apache.spark.streaming._
+
+scala> val ssc = new StreamingContext(sc,Seconds(5))
+streams: org.apache.spark.streaming.StreamingContext = org.apache.spark.streaming.StreamingContext@3a36faae
+
+scala> val streams = ssc.socketTextStream("192.168.217.131",4444,org.apache.spark.storage.StorageLevel.MEMORY_ONLY)
+streams: org.apache.spark.streaming.dstream.ReceiverInputDStream[String] = org.apache.spark.streaming.dstream.SocketInputDStream@44f2082a
+
+scala> val wordcounts = streams.flatMap(_.split(" ")).map(w => (w,1)).reduceByKey(_+_)
+wordcounts: org.apache.spark.streaming.dstream.DStream[(String, Int)] = org.apache.spark.streaming.dstream.ShuffledDStream@5ba434c8
+
+scala> wordcounts.print
+
+scala> ssc.start
